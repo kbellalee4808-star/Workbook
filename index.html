@@ -235,6 +235,29 @@
   .chk .ci .ct{flex:1;font-size:13px;line-height:1.55;color:var(--ink);}
   .chk .ci .ct b{color:var(--navy);}
   @media(max-width:380px){.wrap{padding:0 12px;}.vboard{grid-template-columns:repeat(2,1fr);}.hero .cur{font-size:34px;}.gp .l{font-size:9px;}.tab{font-size:11.5px;min-width:70px;}.tab small{font-size:8px;}}
+  /* 명단 수정 창 */
+  .item .info .nm{cursor:pointer}
+  .item .memo{font-size:12px;color:#7a8794;margin-top:3px;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .edsheet{position:fixed;inset:0;z-index:1000;background:rgba(19,41,63,.55);display:flex;align-items:flex-end;justify-content:center}
+  .edsheet[hidden]{display:none}
+  .edbox{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;background:#fff;border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+  @media (min-width:700px){.edsheet{align-items:center}.edbox{border-radius:20px}}
+  .edbox h3{font-size:17px;font-weight:900;color:var(--navy);margin:0 0 14px}
+  .edbox .elbl{font-size:12.5px;font-weight:700;color:var(--navy);margin:14px 0 7px}
+  .edbox input[type=text],.edbox textarea{width:100%;box-sizing:border-box;min-height:48px;font-family:inherit;font-size:16px;color:var(--ink);border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:var(--ivory)}
+  .edbox textarea{min-height:84px;resize:vertical;line-height:1.6}
+  .edbox input:focus,.edbox textarea:focus{outline:none;border-color:var(--gold);background:#fff}
+  .edbox .chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:14px;color:var(--ink);margin-top:6px}
+  .edbox .chk input{width:20px;height:20px;accent-color:var(--navy)}
+  .edrow{display:flex;gap:8px;margin-top:18px}
+  .edrow button{flex:1;min-height:52px;border-radius:12px;font-family:inherit;font-size:15.5px;font-weight:800;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--navy)}
+  .edrow .save{background:var(--navy);color:#fff;border-color:var(--navy);flex:2}
+  .eddel{display:block;width:100%;margin-top:10px;min-height:44px;border:0;background:none;color:var(--red);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+  #savedToast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1100;background:var(--navy);color:#fff;font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.2);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  #savedToast.on{opacity:1}
+  .backup{margin-top:18px;padding:16px;border:1.5px dashed var(--gold);border-radius:14px;background:#fffdf8}
+  .backup .bt{font-size:14px;font-weight:900;color:var(--navy);margin-bottom:4px}
+  .backup .bd{font-size:12.5px;color:#6b7785;line-height:1.6;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -318,7 +341,7 @@
     </div>
     <label class="ref-row" style="margin-top:16px;"><input type="checkbox" id="refChk"> 소개받은 사람 (소개로 늘어난 명단)</label>
     <button class="add-btn" id="addBtn">+ 명단에 추가</button>
-    <div class="hint">둘 다 안 골라도 추가돼요 (기본 ○). 배지 눌러 나중에 변경.</div>
+    <div class="hint">둘 다 안 골라도 추가돼요 (기본 ○). 이름이나 ✏️를 누르면 수정·메모할 수 있어요.</div>
   </div>
 
   <div class="section-title simple"><div><div class="eng">TODAY'S TO-DO</div><div class="kor">🔥 오늘 연락할 사람 (우선순위)</div></div></div>
@@ -384,6 +407,12 @@
   <div class="btnrow"><button class="btn btn-sec" id="copyListBtn">📋 명단 복사</button><button class="btn btn-sec" id="csvBtn">⬇️ 엑셀(CSV)</button></div>
   <div class="btnrow"><button class="btn btn-gold" id="shareBtn">🔥 내 진행 리더에게</button><button class="btn btn-sec" id="resetList">초기화</button></div>
   <div class="hint">CSV는 엑셀·구글시트에서 바로 열려요. "내 진행"은 단톡방/리더에게 붙여넣기.</div>
+  <div class="backup">
+    <div class="bt">💾 저장 · 다른 기기로 옮기기</div>
+    <div class="bd">적을 때마다 <b>이 기기에 자동 저장</b>돼요. 폰을 바꾸거나 아이패드·노트북에서도 보고 싶을 땐 <b>백업 파일</b>로 저장했다가 그 기기에서 <b>불러오기</b> 하세요. (꿈·결단·명단·스토리 전부)</div>
+    <div class="btnrow" style="margin:0"><button class="btn btn-gold" id="bkSave">💾 백업 파일 저장</button><button class="btn btn-sec" id="bkLoad">📂 불러오기</button></div>
+    <input type="file" id="bkFile" accept=".json,application/json,text/plain" style="display:none">
+  </div>
 </div>
 
 <!-- ===== PANEL 3: 자료 ===== -->
@@ -709,6 +738,23 @@ https://youtu.be/xOodUATanks</div>
   </div>
 </div>
 
+<div class="edsheet" id="edSheet" hidden>
+  <div class="edbox" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+    <h3 id="edTitle">✏️ 명단 수정</h3>
+    <div class="elbl">이름 · 별칭</div>
+    <input type="text" id="edName" placeholder="이름·별칭">
+    <div class="elbl">📝 메모 <span style="font-weight:400;color:#999">(연락처·만난 날·관심사 등)</span></div>
+    <textarea id="edMemo" placeholder="예) 010-0000-0000 · 화요일 저녁 가능 · 여행 좋아함"></textarea>
+    <div class="elbl">📍 거리</div>
+    <div class="pick" id="edDist"><button class="gp" data-g="A"><span class="s">◎</span><span class="l">가깝다</span></button><button class="gp" data-g="B"><span class="s">○</span><span class="l">보통</span></button><button class="gp" data-g="C"><span class="s">△</span><span class="l">멀다</span></button></div>
+    <div class="elbl">🤝 관계</div>
+    <div class="pick" id="edRel"><button class="gp" data-g="A"><span class="s">◎</span><span class="l">친함</span></button><button class="gp" data-g="B"><span class="s">○</span><span class="l">아는 사이</span></button><button class="gp" data-g="C"><span class="s">△</span><span class="l">잘 모름</span></button></div>
+    <label class="chk"><input type="checkbox" id="edRef"> 소개받은 사람</label>
+    <label class="chk"><input type="checkbox" id="edBook"> 약속 완료</label>
+    <div class="edrow"><button type="button" id="edCancel">취소</button><button type="button" class="save" id="edSave">💾 저장</button></div>
+    <button type="button" class="eddel" id="edDel">🗑 이 명단 삭제</button>
+  </div>
+</div>
 <script>
   function esc(s){return s.replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function copyText(t,btn,doneTxt,backTxt){
@@ -782,6 +828,25 @@ https://youtu.be/xOodUATanks</div>
   function cyc(id,axis){var e=st2.entries.find(function(x){return x.id===id;});if(!e)return;e[axis]=e[axis]==='A'?'B':e[axis]==='B'?'C':'A';save2();render2();}
   function tog(id){var e=st2.entries.find(function(x){return x.id===id;});if(!e)return;e.booked=!e.booked;save2();render2();}
   function del2(id){st2.entries=st2.entries.filter(function(x){return x.id!==id;});save2();render2();}
+  /* ✏️ 명단 수정 */
+  var ed={id:null,dist:'B',rel:'B'},sheet=document.getElementById('edSheet');
+  function edPick(boxId,axis,val){ed[axis]=val;document.querySelectorAll('#'+boxId+' .gp').forEach(function(x){x.classList.toggle('sel',x.dataset.g===val);});}
+  ['edDist','edRel'].forEach(function(bid){document.querySelectorAll('#'+bid+' .gp').forEach(function(b){b.addEventListener('click',function(){edPick(bid,bid==='edDist'?'dist':'rel',b.dataset.g);});});});
+  function openEd(id){var e=st2.entries.find(function(x){return x.id===id;});if(!e)return;ed.id=id;
+    document.getElementById('edName').value=e.name||'';document.getElementById('edMemo').value=e.memo||'';
+    edPick('edDist','dist',e.dist||'B');edPick('edRel','rel',e.rel||'B');
+    document.getElementById('edRef').checked=!!e.ref;document.getElementById('edBook').checked=!!e.booked;
+    sheet.hidden=false;document.body.style.overflow='hidden';}
+  function closeEd(){sheet.hidden=true;document.body.style.overflow='';ed.id=null;}
+  document.getElementById('edCancel').addEventListener('click',closeEd);
+  sheet.addEventListener('click',function(ev){if(ev.target===sheet)closeEd();});
+  document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!sheet.hidden)closeEd();});
+  document.getElementById('edSave').addEventListener('click',function(){var e=st2.entries.find(function(x){return x.id===ed.id;});if(!e){closeEd();return;}
+    var nm=document.getElementById('edName').value.trim();if(!nm){document.getElementById('edName').focus();return;}
+    e.name=nm;e.memo=document.getElementById('edMemo').value.trim();e.dist=ed.dist;e.rel=ed.rel;
+    e.ref=document.getElementById('edRef').checked;e.booked=document.getElementById('edBook').checked;
+    save2();render2();closeEd();});
+  document.getElementById('edDel').addEventListener('click',function(){if(!ed.id)return;if(confirm('이 명단을 지울까요?')){del2(ed.id);closeEd();}});
   function render2(){
     var es=st2.entries,total=es.length;
     var stars=es.filter(function(e){return e.dist==='A'&&e.rel==='A';}).length;
@@ -793,29 +858,29 @@ https://youtu.be/xOodUATanks</div>
     if(!todoArr.length){tb.innerHTML='<div class="th"><span>🔥</span><span class="t">오늘 연락할 사람</span></div><div class="todo-empty">명단을 추가하면 가까운 사람부터 자동으로 떠요.<br>세탁소·슈퍼·카페 사장님부터!</div>';}
     else{var h='<div class="th"><span>🔥</span><span class="t">오늘 연락할 사람</span><span class="cnt">'+todoArr.length+'명</span></div><div class="sub">위에서부터 연락하세요 · ⭐◎◎ → 🔥거리◎ → 나머지 순</div>';
       todoArr.forEach(function(e){var ic=(e.dist==='A'&&e.rel==='A')?'⭐':(e.dist==='A'?'🔥':'•');
-        h+='<div class="todo-item"><div class="rank">'+ic+'</div><div class="ti"><div class="nm">'+esc(e.name)+'</div><div class="gg">거리 '+SY[e.dist]+' · 관계 '+SY[e.rel]+'</div></div><button class="mk2" data-act="book" data-id="'+e.id+'">약속 ✓</button></div>';});tb.innerHTML=h;}
+        h+='<div class="todo-item"><div class="rank">'+ic+'</div><div class="ti"><div class="nm" data-act="edit" data-id="'+e.id+'" style="cursor:pointer">'+esc(e.name)+'</div><div class="gg">거리 '+SY[e.dist]+' · 관계 '+SY[e.rel]+'</div></div><button class="mk2" data-act="book" data-id="'+e.id+'">약속 ✓</button></div>';});tb.innerHTML=h;}
     var shown=es.slice().filter(function(e){if(filter==='star')return e.dist==='A'&&e.rel==='A';if(filter==='todo')return !e.booked;return true;})
       .sort(function(a,b){if(a.booked!==b.booked)return a.booked?1:-1;return score(b)-score(a);});
     var L=document.getElementById('listEl');
     if(!shown.length){L.innerHTML='<div class="empty">아직 명단이 없어요.<br>위에서 떠오르는 사람부터 — 편견 없이!</div>';return;}
     L.innerHTML="";shown.forEach(function(e){var isStar=e.dist==='A'&&e.rel==='A';var row=document.createElement('div');row.className='item'+(e.booked?' booked':'');
-      row.innerHTML='<div class="dualbadge"><div class="mb '+e.dist+'" data-act="dist" data-id="'+e.id+'"><span class="ax">거리</span><span class="sy">'+SY[e.dist]+'</span></div><div class="mb '+e.rel+'" data-act="rel" data-id="'+e.id+'"><span class="ax">관계</span><span class="sy">'+SY[e.rel]+'</span></div></div><div class="info"><div class="nm">'+(isStar?'<span class="star">⭐</span>':'')+esc(e.name)+(e.ref?'<span class="tag">소개</span>':'')+'</div></div><div class="acts"><button class="iconbtn book'+(e.booked?' on':'')+'" data-act="book" data-id="'+e.id+'">✓</button><button class="iconbtn" data-act="del" data-id="'+e.id+'">🗑</button></div>';L.appendChild(row);});}
+      row.innerHTML='<div class="dualbadge"><div class="mb '+e.dist+'" data-act="dist" data-id="'+e.id+'"><span class="ax">거리</span><span class="sy">'+SY[e.dist]+'</span></div><div class="mb '+e.rel+'" data-act="rel" data-id="'+e.id+'"><span class="ax">관계</span><span class="sy">'+SY[e.rel]+'</span></div></div><div class="info" style="min-width:0"><div class="nm" data-act="edit" data-id="'+e.id+'">'+(isStar?'<span class="star">⭐</span>':'')+esc(e.name)+(e.ref?'<span class="tag">소개</span>':'')+'</div>'+(e.memo?'<div class="memo" data-act="edit" data-id="'+e.id+'">📝 '+esc(e.memo)+'</div>':'')+'</div><div class="acts"><button class="iconbtn" data-act="edit" data-id="'+e.id+'" aria-label="수정">✏️</button><button class="iconbtn book'+(e.booked?' on':'')+'" data-act="book" data-id="'+e.id+'" aria-label="약속 완료">✓</button><button class="iconbtn" data-act="del" data-id="'+e.id+'" aria-label="삭제">🗑</button></div>';L.appendChild(row);});}
   document.body.addEventListener('click',function(e){
     var b=e.target.closest('[data-act]');if(b){var id=b.dataset.id,act=b.dataset.act;
-      if(act==='dist')cyc(id,'dist');else if(act==='rel')cyc(id,'rel');else if(act==='book')tog(id);else if(act==='del'){if(confirm('이 명단을 지울까요?'))del2(id);}return;}
+      if(act==='edit')openEd(id);else if(act==='dist')cyc(id,'dist');else if(act==='rel')cyc(id,'rel');else if(act==='book')tog(id);else if(act==='del'){if(confirm('이 명단을 지울까요?'))del2(id);}return;}
     var x=e.target.closest('.x');if(x){st1[x.dataset.w].splice(parseInt(x.dataset.i),1);save1();renderC(x.dataset.w);}});
   document.querySelectorAll('.fbtn').forEach(function(b){b.addEventListener('click',function(){filter=b.dataset.f;document.querySelectorAll('.fbtn').forEach(function(x){x.classList.toggle('on',x===b);});render2();});});
 
   // copy/export
   document.getElementById('copyListBtn').addEventListener('click',function(){
     if(!st2.entries.length){alert('명단이 비어있어요.');return;}
-    var t='[ '+(prof.name||'')+' 명단 ]\n'+st2.entries.map(function(e){return '거리'+SY[e.dist]+' 관계'+SY[e.rel]+' '+e.name+(e.ref?' (소개)':'')+(e.booked?' ✓약속':'');}).join('\n');
+    var t='[ '+(prof.name||'')+' 명단 ]\n'+st2.entries.map(function(e){return '거리'+SY[e.dist]+' 관계'+SY[e.rel]+' '+e.name+(e.ref?' (소개)':'')+(e.booked?' ✓약속':'')+(e.memo?' — '+e.memo:'');}).join('\n');
     copyText(t,this,'✅ 복사됨','📋 명단 복사');});
   document.getElementById('csvBtn').addEventListener('click',function(){
     if(!st2.entries.length){alert('명단이 비어있어요.');return;}
     var btn=this;
-    var rows=[['이름','거리','관계','소개','약속완료']];
-    st2.entries.forEach(function(e){rows.push([e.name,SY[e.dist],SY[e.rel],e.ref?'O':'',e.booked?'O':'']);});
+    var rows=[['이름','거리','관계','소개','약속완료','메모']];
+    st2.entries.forEach(function(e){rows.push([e.name,SY[e.dist],SY[e.rel],e.ref?'O':'',e.booked?'O':'',(e.memo||'').replace(/\n/g,' ')]);});
     var csv='\uFEFF'+rows.map(function(r){return r.map(function(c){return '"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\n');
     var tsv=rows.map(function(r){return r.join('\t');}).join('\n');
     var fname='명단_'+(prof.name||'나')+'_'+new Date().toISOString().slice(0,10)+'.csv';
@@ -969,6 +1034,36 @@ https://youtu.be/xOodUATanks</div>
 
   // init
   renderD();renderImgs();renderC("dos");renderC("donts");render2();renderQR();renderGallery();renderStory();
+</script>
+<div id="savedToast">✅ 저장됨</div>
+<script>
+(function(){
+  /* 저장될 때마다 "저장됨" 표시 */
+  var KEYS=["profile_v1","dream_commit_v1","myeongdan_mgr_v2","story_v1"],t=document.getElementById("savedToast"),tm;
+  function flash(m){t.textContent=m||"✅ 이 기기에 저장됨";t.classList.add("on");clearTimeout(tm);tm=setTimeout(function(){t.classList.remove("on")},1300)}
+  window.wbFlash=flash;
+  try{var orig=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){orig.call(this,k,v);if(this===window.localStorage&&KEYS.indexOf(k)>=0)flash()}}catch(e){}
+  /* 백업 저장 / 불러오기 */
+  document.getElementById("bkSave").addEventListener("click",function(){
+    var data={app:"cruise-workbook",v:1,saved:new Date().toISOString(),data:{}};
+    KEYS.forEach(function(k){try{var v=localStorage.getItem(k);if(v)data.data[k]=JSON.parse(v)}catch(e){}});
+    var nm="";try{nm=(JSON.parse(localStorage.getItem("profile_v1"))||{}).name||""}catch(e){}
+    var fname="워크북백업_"+(nm||"나")+"_"+new Date().toISOString().slice(0,10)+".json";
+    var blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    try{var f=new File([blob],fname,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:fname}).catch(function(){});return}}catch(e){}
+    var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},1500);
+    flash("✅ 백업 파일 저장됨");
+  });
+  var fi=document.getElementById("bkFile");
+  document.getElementById("bkLoad").addEventListener("click",function(){fi.click()});
+  fi.addEventListener("change",function(){var f=fi.files[0];if(!f)return;var rd=new FileReader();
+    rd.onload=function(){try{var d=JSON.parse(rd.result);if(!d||d.app!=="cruise-workbook"||!d.data)throw 0;
+        if(!confirm("백업 파일로 불러올까요?\n지금 이 기기에 있는 워크북 내용은 백업 내용으로 바뀌어요."))return;
+        KEYS.forEach(function(k){if(d.data[k]!==undefined)localStorage.setItem(k,JSON.stringify(d.data[k]))});
+        alert("불러왔어요! 화면을 새로 열게요.");location.reload();
+      }catch(e){alert("워크북 백업 파일이 아니에요. 💾 백업 파일 저장으로 만든 파일을 골라주세요.")}};
+    rd.readAsText(f);fi.value=""});
+})();
 </script>
 </body>
 </html>
